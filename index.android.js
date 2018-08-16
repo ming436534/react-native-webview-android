@@ -43,6 +43,17 @@ var WebViewAndroid = createClass({
       this.props.onMessage(event.nativeEvent);
     }
   },
+  _onReceivedSslError: async function(event) {
+    let shouldProceed = false;
+    if (this.props.onReceivedSslError) {
+      shouldProceed = await this.props.onReceivedSslError(event.nativeEvent);
+    }
+    RCTUIManager.dispatchViewManagerCommand(
+      this._getWebViewHandle(),
+      RCTUIManager.RNWebViewAndroid.Commands.resolveSslError,
+      [shouldProceed]
+    );
+  },
   _onShouldOverrideUrlLoading: function(event) {
     let shouldOverride = false;
 
@@ -112,6 +123,7 @@ var WebViewAndroid = createClass({
         {...this.props}
         onNavigationStateChange={this._onNavigationStateChange}
         onMessageEvent={this._onMessage}
+        onReceivedSslError={this._onReceivedSslError}
         onShouldOverrideUrlLoading={this._onShouldOverrideUrlLoading}
       />
     );

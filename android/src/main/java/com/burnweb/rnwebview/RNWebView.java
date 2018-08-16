@@ -2,12 +2,19 @@ package com.burnweb.rnwebview;
 
 import android.annotation.SuppressLint;
 
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.graphics.Bitmap;
+import android.net.http.SslCertificate;
+import android.net.http.SslError;
 import android.os.Build;
+import android.os.Debug;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
+import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -21,10 +28,13 @@ import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.events.EventDispatcher;
 
+import java.security.cert.Certificate;
+
 class RNWebView extends WebView implements LifecycleEventListener {
 
     private final EventDispatcher mEventDispatcher;
     private final RNWebViewManager mViewManager;
+    private final EventWebClient mWebViewClient;
 
     private String charset = "UTF-8";
     private String baseUrl = "file:///";
@@ -33,6 +43,7 @@ class RNWebView extends WebView implements LifecycleEventListener {
 
     private String currentUrl = "";
     private String shouldOverrideUrlLoadingUrl = "";
+    private SslErrorHandler m_SslErrorHandler;
 
     protected class EventWebClient extends WebViewClient {
         public boolean shouldOverrideUrlLoading(WebView view, String url){
@@ -44,8 +55,33 @@ class RNWebView extends WebView implements LifecycleEventListener {
 
             shouldOverrideUrlLoadingUrl = url;
             mEventDispatcher.dispatchEvent(new ShouldOverrideUrlLoadingEvent(getId(), SystemClock.nanoTime(), url, navigationType));
-
             return true;
+        }
+        @Override
+        public void onReceivedSslError(WebView view, final SslErrorHandler handler, SslError error) {
+
+            SslCertificate cert = error.getCertificate();
+            SslCertificate.DName issuedBy = cert.getIssuedBy();
+            SslCertificate.DName issuedTo = cert.getIssuedTo();
+            if (issuedBy.getDName().contentEquals("CN=DigiCert SHA2 Secure Server CA,O=DigiCert Inc,C=US") &&
+                    issuedTo.getCName().contentEquals("*.cityline.com") &&
+                    issuedTo.getDName().contentEquals("CN=*.cityline.com,O=CityLine (Hong Kong) Ltd,L=Hong Kong,C=HK")) {
+                handler.proceed();
+            } else {
+                if (m_SslErrorHandler != null) m_SslErrorHandler.cancel();
+                m_SslErrorHandler = handler;
+                mEventDispatcher.dispatchEvent(new ReceivedSslError(getId(), view.getUrl()));
+            }
+
+        }
+        public void resolveSslError(boolean isContinue) {
+            if (m_SslErrorHandler == null) return;
+            if (isContinue) {
+                m_SslErrorHandler.proceed();
+            } else {
+                m_SslErrorHandler.cancel();
+            }
+            m_SslErrorHandler = null;
         }
 
         public void onPageFinished(WebView view, String url) {
@@ -111,8 +147,8 @@ class RNWebView extends WebView implements LifecycleEventListener {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             this.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
-
-        this.setWebViewClient(new EventWebClient());
+        mWebViewClient = new EventWebClient();
+        this.setWebViewClient(mWebViewClient);
         this.setWebChromeClient(getCustomClient());
 
         this.addJavascriptInterface(RNWebView.this, "webView");
@@ -150,6 +186,10 @@ class RNWebView extends WebView implements LifecycleEventListener {
         if (!args.getBoolean(0)) {
             view.loadUrl(shouldOverrideUrlLoadingUrl);
         }
+    }
+
+    public void resolveSslError(ReadableArray args) {
+        mWebViewClient.resolveSslError(args.getBoolean(0));
     }
 
     public String getBaseUrl() {

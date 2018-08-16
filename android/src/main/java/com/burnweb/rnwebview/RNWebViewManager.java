@@ -33,6 +33,7 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
     public static final int INJECT_JAVASCRIPT = 6;
     public static final int SHOULD_OVERRIDE_WITH_RESULT = 7;
     public static final int EVALUATE_JAVASCRIPT = 8;
+    public static final int RESOLVE_SSL_ERROR = 9;
 
     private static final String HTML_MIME_TYPE = "text/html";
 
@@ -193,6 +194,7 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
                 "injectJavaScript", INJECT_JAVASCRIPT,
                 "shouldOverrideWithResult", SHOULD_OVERRIDE_WITH_RESULT
         );
+        map.put("resolveSslError", RESOLVE_SSL_ERROR);
         map.put("evaluateJavascript", EVALUATE_JAVASCRIPT);
 
         return map;
@@ -235,6 +237,9 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
             case INJECT_JAVASCRIPT:
                 view.loadUrl("javascript:" + args.getString(0));
                 break;
+            case RESOLVE_SSL_ERROR:
+                view.resolveSslError(args);
+                break;
             case SHOULD_OVERRIDE_WITH_RESULT:
                 view.shouldOverrideWithResult(view, args);
                 break;
@@ -251,6 +256,7 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
         return MapBuilder.<String, Object>builder()
                 .put(NavigationStateChangeEvent.EVENT_NAME, MapBuilder.of("registrationName", "onNavigationStateChange"))
                 .put(MessageEvent.EVENT_NAME, MapBuilder.of("registrationName", "onMessageEvent"))
+                .put(ReceivedSslError.EVENT_NAME, MapBuilder.of("registrationName", "onReceivedSslError"))
                 .put(ShouldOverrideUrlLoadingEvent.EVENT_NAME, MapBuilder.of("registrationName", "onShouldOverrideUrlLoading"))
                 .build();
     }
