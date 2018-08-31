@@ -2,6 +2,7 @@ package com.burnweb.rnwebview;
 
 import javax.annotation.Nullable;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +35,7 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
     public static final int SHOULD_OVERRIDE_WITH_RESULT = 7;
     public static final int EVALUATE_JAVASCRIPT = 8;
     public static final int RESOLVE_SSL_ERROR = 9;
+    protected static final String HTTP_METHOD_POST = "POST";
 
     private static final String HTML_MIME_TYPE = "text/html";
 
@@ -155,6 +157,25 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
             if (source.hasKey("uri")) {
                 if (source.hasKey("headers")) {
                     setHeaders(view, source.getMap("headers"));
+                }
+                if (source.hasKey("method")) {
+                    String method = source.getString("method");
+                    if (method.equalsIgnoreCase(HTTP_METHOD_POST)) {
+                        byte[] postData = null;
+                        if (source.hasKey("body")) {
+                            String body = source.getString("body");
+                            try {
+                                postData = body.getBytes("UTF-8");
+                            } catch (UnsupportedEncodingException e) {
+                                postData = body.getBytes();
+                            }
+                        }
+                        if (postData == null) {
+                            postData = new byte[0];
+                        }
+                        view.postUrl(source.getString("uri"), postData);
+                        return;
+                    }
                 }
                 setUrl(view, source.getString("uri"));
                 return;
