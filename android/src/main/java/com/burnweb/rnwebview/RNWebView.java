@@ -14,9 +14,12 @@ import android.util.Log;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
+import android.webkit.MimeTypeMap;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -29,6 +32,11 @@ import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.events.EventDispatcher;
 
 import java.security.cert.Certificate;
+import java.util.Map;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 class RNWebView extends WebView implements LifecycleEventListener {
 
@@ -97,6 +105,38 @@ class RNWebView extends WebView implements LifecycleEventListener {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             mEventDispatcher.dispatchEvent(new NavigationStateChangeEvent(getId(), SystemClock.nanoTime(), view.getTitle(), true, url, view.canGoBack(), view.canGoForward()));
         }
+//        @Override
+//        public WebResourceResponse shouldInterceptRequest(final WebView view, final String url) {
+//            return interceptRequest(view, url);
+//        }
+//
+//        @SuppressLint("NewApi")
+//        @Override
+//        public WebResourceResponse shouldInterceptRequest(final WebView view, final WebResourceRequest request) {
+//            return interceptRequest(view, request.getUrl().toString());
+//        }
+//
+//        public WebResourceResponse interceptRequest(final WebView view, final String url) {
+//            String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+//
+//            if (extension != null && extension.length() > 0 && !extension.equalsIgnoreCase("html")) {
+//                OkHttpClient httpClient = new OkHttpClient.Builder().build();
+//                Request.Builder req = new Request.Builder()
+//                        .url(url.trim());
+//                try {
+//                    Response response = httpClient.newCall(req.build()).execute();
+//                    return new WebResourceResponse(
+//                            response.header("content-type").split(";")[0],
+//                            response.body().contentType().charset().displayName(),
+//                            response.body().byteStream()
+//                    );
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            return null;
+//        }
+
     }
 
     protected class CustomWebChromeClient extends WebChromeClient {
@@ -182,9 +222,9 @@ class RNWebView extends WebView implements LifecycleEventListener {
         this.baseUrl = baseUrl;
     }
 
-    public void shouldOverrideWithResult(RNWebView view, ReadableArray args) {
+    public void shouldOverrideWithResult(RNWebView view, ReadableArray args, Map<String, String> headersMap) {
         if (!args.getBoolean(0)) {
-            view.loadUrl(shouldOverrideUrlLoadingUrl);
+            view.loadUrl(shouldOverrideUrlLoadingUrl, headersMap);
         }
     }
 

@@ -262,7 +262,7 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
                 view.resolveSslError(args);
                 break;
             case SHOULD_OVERRIDE_WITH_RESULT:
-                view.shouldOverrideWithResult(view, args);
+                view.shouldOverrideWithResult(view, args, headerMap);
                 break;
             case EVALUATE_JAVASCRIPT:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
