@@ -203,6 +203,11 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
         view.setInjectedJavaScript(injectedJavaScript);
     }
 
+    @ReactProp(name = "disableOverrideUrlLoading")
+    public void setDisableOverrideUrlLoading(RNWebView view, @Nullable Boolean isDisable) {
+        view.disableOverrideUrlLoading = isDisable;
+    }
+
     @Override
     public @Nullable
     Map<String, Integer> getCommandsMap() {

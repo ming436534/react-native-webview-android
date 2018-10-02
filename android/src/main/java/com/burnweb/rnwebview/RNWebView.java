@@ -53,6 +53,8 @@ class RNWebView extends WebView implements LifecycleEventListener {
     private String shouldOverrideUrlLoadingUrl = "";
     private SslErrorHandler m_SslErrorHandler;
 
+    public Boolean disableOverrideUrlLoading = false;
+
     protected class EventWebClient extends WebViewClient {
         public boolean shouldOverrideUrlLoading(WebView view, String url){
             int navigationType = 0;
@@ -62,8 +64,10 @@ class RNWebView extends WebView implements LifecycleEventListener {
             }
 
             shouldOverrideUrlLoadingUrl = url;
-            mEventDispatcher.dispatchEvent(new ShouldOverrideUrlLoadingEvent(getId(), SystemClock.nanoTime(), url, navigationType));
-            return true;
+            if (!disableOverrideUrlLoading) {
+                mEventDispatcher.dispatchEvent(new ShouldOverrideUrlLoadingEvent(getId(), SystemClock.nanoTime(), url, navigationType));
+            }
+            return !disableOverrideUrlLoading;
         }
         @Override
         public void onReceivedSslError(WebView view, final SslErrorHandler handler, SslError error) {
