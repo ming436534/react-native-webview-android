@@ -18,18 +18,22 @@ import android.webkit.MimeTypeMap;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.common.SystemClock;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.events.EventDispatcher;
+import com.facebook.react.views.webview.events.TopLoadingErrorEvent;
 
 import java.security.cert.Certificate;
 import java.util.Map;
@@ -85,6 +89,44 @@ class RNWebView extends WebView implements LifecycleEventListener {
                 mEventDispatcher.dispatchEvent(new ReceivedSslError(getId(), view.getUrl()));
             }
 
+        }
+        protected WritableMap createErrorWebViewEvent(WebView webView, String url) {
+            WritableMap event = Arguments.createMap();
+            event.putDouble("target", webView.getId());
+            // Don't use webView.getUrl() here, the URL isn't updated to the new value yet in callbacks
+            // like onPageFinished
+            event.putString("url", url);
+            event.putBoolean("loading", false);
+            event.putString("title", webView.getTitle());
+            event.putBoolean("canGoBack", webView.canGoBack());
+            event.putBoolean("canGoForward", webView.canGoForward());
+            return event;
+        }
+        @Override
+        public void onReceivedError(
+                WebView webView,
+                int errorCode,
+                String description,
+                String failingUrl) {
+            super.onReceivedError(webView, errorCode, description, failingUrl);
+            onPageFinished(webView, failingUrl);
+            WritableMap eventData = createErrorWebViewEvent(webView, failingUrl);
+            eventData.putDouble("code", errorCode);
+            eventData.putString("description", description);
+            mEventDispatcher.dispatchEvent(new ErrorEvent(webView.getId(), eventData));
+        }
+
+        @SuppressLint("NewApi")
+        @Override
+        public void onReceivedError (WebView webView,
+                                     WebResourceRequest request,
+                                     WebResourceError error) {
+            String failingUrl = request.getUrl().toString();
+            onPageFinished(webView, request.getUrl().toString());
+            WritableMap eventData = createErrorWebViewEvent(webView, failingUrl);
+            eventData.putDouble("code", error.getErrorCode());
+            eventData.putString("description", error.getDescription().toString());
+            mEventDispatcher.dispatchEvent(new ErrorEvent(webView.getId(), eventData));
         }
         public void resolveSslError(boolean isContinue) {
             if (m_SslErrorHandler == null) return;
