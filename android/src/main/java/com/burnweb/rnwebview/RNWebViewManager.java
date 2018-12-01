@@ -107,6 +107,11 @@ public class RNWebViewManager extends SimpleViewManager<RNWebView> {
         view.getSettings().setBuiltInZoomControls(builtInZoomControls);
     }
 
+    @ReactProp(name = "webContentsDebuggingEnabled", defaultBoolean = false)
+    public void setWebContentsDebuggingEnabled(RNWebView view, boolean webContentsDebuggingEnabled) {
+        RNWebView.setWebContentsDebuggingEnabled(webContentsDebuggingEnabled);
+    }
+
     @ReactProp(name = "geolocationEnabled", defaultBoolean = false)
     public void setGeolocationEnabled(RNWebView view, boolean geolocationEnabled) {
         view.getSettings().setGeolocationEnabled(geolocationEnabled);
