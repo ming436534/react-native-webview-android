@@ -61,6 +61,9 @@ class RNWebView extends WebView implements LifecycleEventListener {
 
     protected class EventWebClient extends WebViewClient {
         public boolean shouldOverrideUrlLoading(WebView view, String url){
+            if (url.contains("about:blank")) {
+                return true;
+            }
             int navigationType = 0;
 
             if (currentUrl.equals(url) || url.equals("about:blank")) { // for regular .reload() and html reload.
@@ -123,10 +126,12 @@ class RNWebView extends WebView implements LifecycleEventListener {
                                      WebResourceError error) {
             String failingUrl = request.getUrl().toString();
             onPageFinished(webView, request.getUrl().toString());
-            WritableMap eventData = createErrorWebViewEvent(webView, failingUrl);
-            eventData.putDouble("code", error.getErrorCode());
-            eventData.putString("description", error.getDescription().toString());
-            mEventDispatcher.dispatchEvent(new ErrorEvent(webView.getId(), eventData));
+            if (!failingUrl.contains("about:blank")) {
+                WritableMap eventData = createErrorWebViewEvent(webView, failingUrl);
+                eventData.putDouble("code", error.getErrorCode());
+                eventData.putString("description", error.getDescription().toString());
+                mEventDispatcher.dispatchEvent(new ErrorEvent(webView.getId(), eventData));
+            }
         }
         public void resolveSslError(boolean isContinue) {
             if (m_SslErrorHandler == null) return;
