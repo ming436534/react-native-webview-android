@@ -48,8 +48,10 @@ var WebViewAndroid = createClass({
     if (this.props.onReceivedSslError) {
       shouldProceed = await this.props.onReceivedSslError(event.nativeEvent);
     }
+    const handle = this._getWebViewHandle();
+    if (!handle) return;
     RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
+      handle,
       RCTUIManager.RNWebViewAndroid.Commands.resolveSslError,
       [shouldProceed]
     );
@@ -60,58 +62,73 @@ var WebViewAndroid = createClass({
     if (this.props.onShouldStartLoadWithRequest) {
       shouldOverride = !this.props.onShouldStartLoadWithRequest(event.nativeEvent);
     }
-
+    const handle = this._getWebViewHandle();
+    if (!handle) return;
     RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
+      handle,
       RCTUIManager.RNWebViewAndroid.Commands.shouldOverrideWithResult,
       [shouldOverride]
     );
   },
   goBack: function() {
+    const handle = this._getWebViewHandle();
+    if (!handle) return;
     RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
+      handle,
       RCTUIManager.RNWebViewAndroid.Commands.goBack,
       null
     );
   },
   goForward: function() {
+    const handle = this._getWebViewHandle();
+    if (!handle) return;
     RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
+      handle,
       RCTUIManager.RNWebViewAndroid.Commands.goForward,
       null
     );
   },
   reload: function() {
+    const handle = this._getWebViewHandle();
+    if (!handle) return;
     RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
+      handle,
       RCTUIManager.RNWebViewAndroid.Commands.reload,
       null
     );
   },
   stopLoading: function() {
+    const handle = this._getWebViewHandle();
+    if (!handle) return;
     RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
+      handle,
       RCTUIManager.RNWebViewAndroid.Commands.stopLoading,
       null
     );
   },
   evaluateJavascript: function(data) {
+    const handle = this._getWebViewHandle();
+    if (!handle) return;
     RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
+      handle,
       RCTUIManager.RNWebViewAndroid.Commands.evaluateJavascript,
       [String(data)]
     );
   },
   postMessage: function(data) {
+    const handle = this._getWebViewHandle();
+    if (!handle) return;
     RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
+      handle,
       RCTUIManager.RNWebViewAndroid.Commands.postMessage,
       [String(data)]
     );
   },
   injectJavaScript: function(data) {
+    const handle = this._getWebViewHandle();
+    if (!handle) return;
     RCTUIManager.dispatchViewManagerCommand(
-      this._getWebViewHandle(),
+      handle,
       RCTUIManager.RNWebViewAndroid.Commands.injectJavaScript,
       [data]
     );
